@@ -1,0 +1,26 @@
+{
+  "name": "concludo-extraction-spike",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Throwaway extraction spike for Concludo (PRD Section 7, Step 1). Not product code.",
+  "scripts": {
+    "spike": "tsx src/runSpike.ts",
+    "spike:one": "tsx src/runSpike.ts --only",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "dotenv": "^17.0.0",
+    "zod": "^3.23.0",
+    "zod-to-json-schema": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}

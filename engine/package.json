@@ -1,0 +1,29 @@
+{
+  "name": "concludo-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Concludo judgment engine (PRD Section 7, Step 2). Product code: minimal schema + one full ASC 606 judgment chain, script-only.",
+  "scripts": {
+    "run": "tsx src/run.ts",
+    "db:check": "tsx src/db/check.ts",
+    "db:seed": "tsx src/db/seed.ts",
+    "db:persist": "tsx src/db/persist.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^17.0.0",
+    "zod": "^3.23.0",
+    "zod-to-json-schema": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}

@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+!.env.local.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.local.example
+
+# Next.js
+web/.next/
+web/out/
+web/build/
+
+# Build output / caches
+dist/
+**/dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
