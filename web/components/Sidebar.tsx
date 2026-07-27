@@ -41,8 +41,9 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export default function Sidebar({ userEmail, displayName, isAdmin, companyName }: { userEmail: string; displayName: string; isAdmin: boolean; companyName: string }) {
+export default function Sidebar({ userEmail, displayName, isAdmin, companyName, companyLogo }: { userEmail: string; displayName: string; isAdmin: boolean; companyName: string; companyLogo: string | null }) {
   const initial = (companyName || displayName || userEmail || "?").trim().charAt(0).toUpperCase();
+  const label = companyName ? `${companyName} - ${displayName || userEmail}` : (displayName || userEmail);
   const pathname = usePathname();
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -101,14 +102,11 @@ export default function Sidebar({ userEmail, displayName, isAdmin, companyName }
           </a>
         ) : null}
         <div className="acct">
-          <Link href="/settings" className="avatar" title="Set company icon" aria-label="Set company icon">
-            {initial}
-            <span className="cam">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M4 8h3l2-2h6l2 2h3v11H4z" /><circle cx="12" cy="13" r="3" /></svg>
-            </span>
-          </Link>
+          <div className="avatar" aria-hidden="true">
+            {companyLogo ? <img src={companyLogo} alt="" /> : initial}
+          </div>
           <div className="acctbody">
-            <div className="acctname" title={userEmail}>{displayName || userEmail}</div>
+            <div className="acctname" title={userEmail}>{label}</div>
             <form action={signOutAction}><button className="signout" type="submit">Sign out</button></form>
           </div>
         </div>

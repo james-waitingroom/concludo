@@ -59,7 +59,9 @@ a { color: inherit; text-decoration: none; }
 .acct { margin-top: 8px; padding: 12px 10px; border-radius: 11px; background: var(--surface-2); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .avatar { width: 42px; height: 42px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-strong); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); display: grid; place-items: center; font-weight: 700; font-size: 17px; position: relative; }
 .avatar:hover { filter: brightness(0.97); }
-.avatar .cam { position: absolute; right: -3px; bottom: -3px; width: 16px; height: 16px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line-strong); display: grid; place-items: center; color: var(--muted); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.logopreview { width: 64px; height: 64px; border-radius: 14px; background: var(--accent-soft); color: var(--accent-strong); border: 1px solid var(--line); display: grid; place-items: center; font-weight: 700; font-size: 24px; overflow: hidden; flex: none; }
+.logopreview img { width: 100%; height: 100%; object-fit: cover; }
 .acctbody { min-width: 0; width: 100%; }
 .acctname { font-size: 13px; color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 7px; }
 
@@ -186,6 +188,8 @@ td.r, th.r { text-align: right; }
 .fgroup > .flabel { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); font-weight: 700; margin-bottom: 8px; }
 .checkline { display: flex; align-items: center; gap: 9px; padding: 5px 0; font-size: 13.5px; color: var(--ink); cursor: pointer; }
 .checkline input { width: 15px; height: 15px; }
+.custsearch { width: 100%; font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); margin-bottom: 8px; }
+.custsearch:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .checkscroll { max-height: 168px; overflow-y: auto; padding-right: 4px; }
 .numrow { display: flex; align-items: center; gap: 8px; }
 .numrow input { flex: 1; font: inherit; font-size: 14px; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--ink); }

@@ -74,6 +74,23 @@ export async function assignUserAction(formData: FormData) {
   back("message=" + encodeURIComponent(`Assigned ${email} to this tenant.`));
 }
 
+export async function setCompanyLogoAction(input: { companyId: string; dataUrl: string | null }): Promise<{ error?: string; ok?: boolean }> {
+  const supabase = supabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+  if (!(await isPlatformAdmin(user.id))) return { error: "Not authorized." };
+
+  if (input.dataUrl) {
+    if (!input.dataUrl.startsWith("data:image/")) return { error: "Please choose an image file (PNG, JPG, or SVG)." };
+    if (input.dataUrl.length > 700000) return { error: "Image is too large (max ~500KB). Use a smaller, square image." };
+  }
+  const db = supabaseAdmin();
+  const { error } = await db.from("companies").update({ logo: input.dataUrl }).eq("id", input.companyId);
+  if (error) return { error: error.message };
+  revalidatePath(`/admin/${input.companyId}`);
+  return { ok: true };
+}
+
 export async function resetPasswordAction(formData: FormData) {
   await requireAdmin();
   const companyId = String(formData.get("companyId") || "");

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { provisionUserAction, assignUserAction, removeMemberAction, resetPasswordAction } from "../actions";
+import CompanyLogo from "./CompanyLogo";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,13 @@ export default async function TenantDetail({
 
       {searchParams.error ? <div className="auth-err" style={{ marginTop: 16 }}>{searchParams.error}</div> : null}
       {searchParams.message ? <div className="auth-msg" style={{ marginTop: 16 }}>{searchParams.message}</div> : null}
+
+      <div className="sec">
+        <h2>Company branding</h2>
+        <div className="card" style={{ padding: 20 }}>
+          <CompanyLogo companyId={params.companyId} current={(company.logo as string) ?? null} initial={(company.name ?? "?").charAt(0).toUpperCase()} />
+        </div>
+      </div>
 
       <div className="sec">
         <h2>Users with access</h2>

@@ -32,7 +32,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   const [admin, { data: company }] = await Promise.all([
     isPlatformAdmin(user.id),
-    supabase.from("companies").select("name").eq("id", companyId).single(),
+    supabase.from("companies").select("*").eq("id", companyId).single(),
   ]);
 
   const fullName = (user.user_metadata?.full_name as string) ?? "";
@@ -40,7 +40,13 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="app">
-      <Sidebar userEmail={user.email ?? ""} displayName={firstName} isAdmin={admin} companyName={company?.name ?? ""} />
+      <Sidebar
+        userEmail={user.email ?? ""}
+        displayName={firstName}
+        isAdmin={admin}
+        companyName={company?.name ?? ""}
+        companyLogo={(company?.logo as string) ?? null}
+      />
       <main className="main">{children}</main>
     </div>
   );

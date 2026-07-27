@@ -18,6 +18,7 @@ export default function ContractsTable({ contracts }: { contracts: Row[] }) {
   const [customers, setCustomers] = useState<Set<string>>(new Set());
   const [statuses, setStatuses] = useState<Set<string>>(new Set());
   const [minTcv, setMinTcv] = useState("");
+  const [custQuery, setCustQuery] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -88,13 +89,24 @@ export default function ContractsTable({ contracts }: { contracts: Row[] }) {
               </div>
               <div className="fgroup">
                 <div className="flabel">Customer</div>
+                <input
+                  className="custsearch"
+                  placeholder="Search customers…"
+                  value={custQuery}
+                  onChange={(e) => setCustQuery(e.target.value)}
+                />
                 <div className="checkscroll">
-                  {allCustomers.map((cust) => (
-                    <label className="checkline" key={cust}>
-                      <input type="checkbox" checked={customers.has(cust)} onChange={() => toggle(customers, cust, setCustomers)} />
-                      {cust}
-                    </label>
-                  ))}
+                  {allCustomers
+                    .filter((cust) => cust.toLowerCase().includes(custQuery.trim().toLowerCase()))
+                    .map((cust) => (
+                      <label className="checkline" key={cust}>
+                        <input type="checkbox" checked={customers.has(cust)} onChange={() => toggle(customers, cust, setCustomers)} />
+                        {cust}
+                      </label>
+                    ))}
+                  {allCustomers.filter((c) => c.toLowerCase().includes(custQuery.trim().toLowerCase())).length === 0 && (
+                    <div className="resultcount" style={{ padding: "6px 0" }}>No customers match.</div>
+                  )}
                 </div>
               </div>
               <div className="panelfoot">
