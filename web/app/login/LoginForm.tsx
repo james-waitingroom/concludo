@@ -3,7 +3,7 @@
 import { signInAction } from "./actions";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 
-export default function LoginForm({ error, message }: { error?: string; message?: string }) {
+export default function LoginForm({ error, message, companyLogo, companyName }: { error?: string; message?: string; companyLogo?: string | null; companyName?: string | null }) {
   async function google() {
     const supabase = supabaseBrowser();
     await supabase.auth.signInWithOAuth({
@@ -14,9 +14,17 @@ export default function LoginForm({ error, message }: { error?: string; message?
 
   return (
     <div className="auth-card">
-      <div className="brand" style={{ padding: "0 0 18px" }}>
-        <span className="glyph">C</span> Concludo
-      </div>
+      {companyLogo ? (
+        <div className="authbrand">
+          <div className="authlogo"><img src={companyLogo} alt={companyName ?? "Company"} /></div>
+          {companyName ? <div className="authco">{companyName}</div> : null}
+          <div className="authpowered">Powered by Concludo</div>
+        </div>
+      ) : (
+        <div className="brand" style={{ padding: "0 0 18px" }}>
+          <span className="glyph">C</span> Concludo
+        </div>
+      )}
       <h1 style={{ fontSize: 20 }}>Sign in</h1>
       <p className="sub" style={{ marginBottom: 18 }}>Access your revenue recognition workspace. Accounts are provisioned by your Concludo administrator.</p>
 
