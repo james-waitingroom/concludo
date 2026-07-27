@@ -25,13 +25,11 @@ export default function NewContractForm() {
 
     setBusy(true);
 
-    // 1. Create the row (server, RLS-scoped).
     const created = await createContractRecord({ name, customer });
     if (created.error) { setErr(created.error); setBusy(false); return; }
     const contractId = created.contractId!;
     const companyId = created.companyId!;
 
-    // 2. Upload the PDF straight to Storage (browser → Supabase, RLS-scoped by company folder).
     const path = `${companyId}/${contractId}/${file.name}`;
     const supabase = supabaseBrowser();
     const up = await supabase.storage
@@ -39,7 +37,6 @@ export default function NewContractForm() {
       .upload(path, file, { contentType: "application/pdf", upsert: true });
     if (up.error) { setErr("Upload failed: " + up.error.message); setBusy(false); return; }
 
-    // 3. Save the storage path on the row (server).
     const fin = await finalizeContractSource({ contractId, path, fileName: file.name });
     if (fin.error) { setErr(fin.error); setBusy(false); return; }
 

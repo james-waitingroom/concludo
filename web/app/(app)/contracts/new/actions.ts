@@ -26,7 +26,7 @@ export async function createContractRecord(input: {
 
   const ins = await supabase
     .from("contracts")
-    .insert({ company_id: companyId, name, customer, status: "draft", source_origin: "upload" })
+    .insert({ company_id: companyId, name, customer, status: "in_review", source_origin: "upload" })
     .select("id")
     .single();
   if (ins.error) return { error: ins.error.message };

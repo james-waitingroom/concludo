@@ -4,10 +4,10 @@ import { supabaseServer } from "@/lib/supabaseServer";
 
 export const dynamic = "force-dynamic";
 
-const money = (n: number | null) => (n == null ? "—" : "$" + Number(n).toLocaleString("en-US"));
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Memo draft", in_review: "In review", active: "Active", amended: "Amended", terminated: "Terminated", blocked: "Blocked",
-};
+const money = (n: number | null) => (n == null ? "—" : "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+const date = (d: string | null) => (d ? new Date(d + "T00:00:00").toLocaleDateString("en-US") : "—");
+const STATUS_LABEL: Record<string, string> = { active: "Active", in_review: "In Review", denied: "Denied" };
+const ORIGIN_LABEL: Record<string, string> = { upload: "Manual upload", crm: "CRM integration" };
 
 function Attr({ k, v }: { k: string; v: React.ReactNode }) {
   const empty = v == null || v === "";
@@ -26,12 +26,12 @@ export default async function ContractDetail({ params }: { params: { id: string 
 
   const { data: pos } = await db
     .from("performance_obligations")
-    .select("description,is_distinct,ssp_method,ssp_value,ssp_confidence_tier,allocated_price,recognition_type,recognition_method")
+    .select("description,is_distinct,ssp_method,ssp_value,allocated_price,recognition_type")
     .eq("contract_id", params.id);
 
   const { data: judgments } = await db
     .from("judgments")
-    .select("judgment_type,standard_ref,ai_proposed_conclusion,confidence_tier,status")
+    .select("judgment_type,standard_ref,ai_proposed_conclusion,confidence_tier")
     .eq("contract_id", params.id)
     .eq("status", "approved")
     .order("created_at");
@@ -53,23 +53,37 @@ export default async function ContractDetail({ params }: { params: { id: string 
             </div>
             <div className="sub">{c.customer}</div>
           </div>
-          <span className="spacer"></span>
-          {c.source_file_path ? (
-            <a className="dlbtn" href={`/api/contracts/${c.id}/source`}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M5 21h14"/></svg>
-              Download source
-            </a>
-          ) : null}
         </div>
+
         <div className="attrs">
-          <Attr k="Standard" v={c.standard} />
-          <Attr k="Source document" v={c.source_file_name} />
-          <Attr k="Entity" v={c.entity} />
-          <Attr k="Currency" v={c.currency} />
           <Attr k="Total Contract Value" v={<span className="mono">{money(c.transaction_price)}</span>} />
-          <Attr k="Effective date" v={c.effective_date} />
+          <Attr k="Currency" v={c.currency} />
+          <Attr k="Standard" v={c.standard?.replace("_", " ")} />
+          <Attr k="Status" v={STATUS_LABEL[c.status] ?? c.status} />
+
+          <Attr k="Customer" v={c.customer} />
+          <Attr k="Entity" v={c.entity} />
+          <Attr k="Effective date" v={date(c.effective_date)} />
           <Attr k="Term (months)" v={c.term_months} />
+
+          <Attr k="Contract start date" v={date(c.term_start)} />
+          <Attr k="Contract end date" v={date(c.term_end)} />
+          <Attr k="Source" v={ORIGIN_LABEL[c.source_origin ?? ""] ?? c.source_origin} />
+          <Attr
+            k="Source document"
+            v={
+              c.source_file_path ? (
+                <a className="filelink" href={`/api/contracts/${c.id}/source`}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3H6v18h12V7z" /><path d="M14 3v4h4" /></svg>
+                  {c.source_file_name ?? "Download PDF"}
+                </a>
+              ) : null
+            }
+          />
+
           <Attr k="Performance obligations" v={pos?.length ?? 0} />
+          <Attr k="Created" v={c.created_at ? new Date(c.created_at).toLocaleDateString("en-US") : "—"} />
+          <Attr k="Last updated" v={c.updated_at ? new Date(c.updated_at).toLocaleDateString("en-US") : "—"} />
         </div>
       </div>
 
@@ -96,7 +110,7 @@ export default async function ContractDetail({ params }: { params: { id: string 
                       <td>{p.is_distinct == null ? "—" : p.is_distinct ? "Yes" : "No"}</td>
                       <td>{p.ssp_method ?? "—"}</td>
                       <td className="r mono">{money(p.ssp_value)}</td>
-                      <td>{p.recognition_type ? `${p.recognition_type}` : "—"}</td>
+                      <td>{p.recognition_type ?? "—"}</td>
                       <td className="r mono">{money(p.allocated_price)}</td>
                     </tr>
                   ))}
@@ -129,7 +143,7 @@ export default async function ContractDetail({ params }: { params: { id: string 
         ) : (
           <div className="empty-note">
             No judgments stored for this contract yet. Run <code>npm run db:persist</code> in the engine
-            to generate and store its chain (Brightwell is wired up as the first worked example).
+            to generate and store its chain.
           </div>
         )}
       </div>

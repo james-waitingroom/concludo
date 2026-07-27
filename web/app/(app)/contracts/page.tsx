@@ -4,9 +4,7 @@ import { supabaseServer } from "@/lib/supabaseServer";
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
 const money = (n: number | null) => (n == null ? "—" : "$" + Number(n).toLocaleString("en-US"));
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Memo draft", in_review: "In review", active: "Active", amended: "Amended", terminated: "Terminated", blocked: "Blocked",
-};
+const STATUS_LABEL: Record<string, string> = { active: "Active", in_review: "In Review", denied: "Denied" };
 
 export default async function ContractsPage() {
   const db = supabaseServer();
@@ -19,17 +17,15 @@ export default async function ContractsPage() {
     <div className="content">
       <div className="list-head">
         <div>
-          <div className="eyebrow">ACME Inc.</div>
+          <div className="eyebrow">Revenue · Contracts</div>
           <h1>Contracts</h1>
-          <div className="sub">Live from your Supabase database — {data?.length ?? 0} contracts.</div>
+          <div className="sub">{data?.length ?? 0} contracts in your workspace.</div>
         </div>
         <Link href="/contracts/new" className="addbtn"><span className="plus">+</span> Add contract</Link>
       </div>
 
       {error ? (
-        <div className="empty-note" style={{ marginTop: 24 }}>
-          Couldn&apos;t load contracts: {error.message}
-        </div>
+        <div className="empty-note" style={{ marginTop: 24 }}>Couldn&apos;t load contracts: {error.message}</div>
       ) : (
         <div className="card" style={{ marginTop: 20 }}>
           <div className="tscroll">
@@ -45,7 +41,7 @@ export default async function ContractsPage() {
               </thead>
               <tbody>
                 {(data ?? []).map((c) => (
-                  <tr className="row" key={c.id} style={{ cursor: "pointer" }}>
+                  <tr className="row" key={c.id}>
                     <td>
                       <Link href={`/contracts/${c.id}`} style={{ display: "block" }}>
                         <span className="name">{c.name}</span>
