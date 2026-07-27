@@ -41,8 +41,8 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export default function Sidebar({ userEmail, isAdmin, companyName }: { userEmail: string; isAdmin: boolean; companyName: string }) {
-  const initial = (companyName || userEmail || "?").trim().charAt(0).toUpperCase();
+export default function Sidebar({ userEmail, displayName, isAdmin, companyName }: { userEmail: string; displayName: string; isAdmin: boolean; companyName: string }) {
+  const initial = (companyName || displayName || userEmail || "?").trim().charAt(0).toUpperCase();
   const pathname = usePathname();
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -108,7 +108,7 @@ export default function Sidebar({ userEmail, isAdmin, companyName }: { userEmail
             </span>
           </Link>
           <div className="acctbody">
-            <div className="acctmail" title={userEmail}>{userEmail}</div>
+            <div className="acctname" title={userEmail}>{displayName || userEmail}</div>
             <form action={signOutAction}><button className="signout" type="submit">Sign out</button></form>
           </div>
         </div>

@@ -43,6 +43,7 @@ export async function finalizeContractSource(input: {
   const supabase = supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "You are not signed in." };
+  if (!input.fileName.toLowerCase().endsWith(".pdf")) return { error: "Only PDF source documents are allowed." };
 
   const upd = await supabase
     .from("contracts")

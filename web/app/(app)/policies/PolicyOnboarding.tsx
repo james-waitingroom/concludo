@@ -7,6 +7,14 @@ import { createPolicy } from "./actions";
 type Stage = "onboard" | "upload" | "analyzing" | "report" | "generated";
 type Path = "have" | "none";
 
+const MIN_CONTRACTS = 3;
+
+const QUESTIONS = [
+  { key: "sells", label: "What does your company primarily sell?", options: ["SaaS subscriptions", "Professional services", "Hybrid (software + services)", "Usage-based products"] },
+  { key: "commissions", label: "Do you pay sales commissions?", options: ["Yes", "No"] },
+  { key: "variable", label: "Do you have variable or usage-based fees?", options: ["Yes", "No"] },
+] as const;
+
 const REPORT = [
   { kind: "critical", tag: "Compliance conflict", head: "Implementation fees recognized at contract signing", body: "The policy recognizes one-time implementation and onboarding fees in full at signing. This conflicts with over-time recognition where the work has no alternative use and there is an enforceable right to payment for performance completed to date.", cite: "ASC 606-10-25-27(c)" },
   { kind: "warning", tag: "Compliance conflict", head: "Commission costs expensed as incurred", body: "The policy expenses sales commissions as incurred. Incremental costs of obtaining a contract must be capitalized and amortized over the period of benefit, unless the amortization period is one year or less.", cite: "ASC 340-40-25-1" },
@@ -26,7 +34,8 @@ export default function PolicyOnboarding() {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("onboard");
   const [path, setPath] = useState<Path>("have");
-  const [fileName, setFileName] = useState("");
+  const [files, setFiles] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [err, setErr] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
   const [doneSteps, setDoneSteps] = useState(0);
@@ -51,22 +60,24 @@ export default function PolicyOnboarding() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
-  function pickFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function pickFiles(e: React.ChangeEvent<HTMLInputElement>) {
     setErr(undefined);
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (!f.name.toLowerCase().endsWith(".pdf") || f.type !== "application/pdf") {
-      setErr("Only PDF files are accepted.");
-      e.target.value = "";
-      return;
-    }
-    setFileName(f.name);
+    const chosen = Array.from(e.target.files ?? []);
+    if (chosen.length === 0) return;
+    const bad = chosen.find((f) => !f.name.toLowerCase().endsWith(".pdf") || f.type !== "application/pdf");
+    if (bad) { setErr("Only PDF files are accepted."); e.target.value = ""; return; }
+    setFiles(path === "have" ? [chosen[0].name] : chosen.map((f) => f.name));
   }
 
-  function start(p: Path) { setPath(p); setFileName(""); setErr(undefined); setStage("upload"); }
+  function start(p: Path) { setPath(p); setFiles([]); setAnswers({}); setErr(undefined); setStage("upload"); }
 
   function analyze() {
-    if (!fileName) { setErr(path === "have" ? "Please upload your policy document to continue." : "Please upload at least one example contract."); return; }
+    if (path === "have") {
+      if (files.length === 0) { setErr("Please upload your policy document to continue."); return; }
+    } else {
+      if (QUESTIONS.some((q) => !answers[q.key])) { setErr("Please answer all questions to tailor the policy."); return; }
+      if (files.length < MIN_CONTRACTS) { setErr(`Please upload at least ${MIN_CONTRACTS} example contracts (you've added ${files.length}).`); return; }
+    }
     setStage("analyzing");
   }
 
@@ -80,37 +91,47 @@ export default function PolicyOnboarding() {
 
   if (stage === "onboard") {
     return (
-      <>
-        <div className="choicegrid">
-          <button className="choice" onClick={() => start("have")}>
-            <div className="cic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h9l4 4v14H6z" /><path d="M14 3v5h5" /><path d="M9 13h6M9 17h6" /></svg></div>
-            <h3>I have a policy</h3>
-            <p>Upload your revenue recognition policy. We&apos;ll parse it into provisions and check each against US GAAP, flagging compliance conflicts and coverage gaps.</p>
-            <span className="go">Upload policy →</span>
-          </button>
-          <button className="choice" onClick={() => start("none")}>
-            <div className="cic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 5v14M5 12h14" /></svg></div>
-            <h3>I don&apos;t have one yet</h3>
-            <p>Upload a few example contracts and we&apos;ll draft a starter policy grounded in the standard and your own fact patterns — recommended as your policy of record, pending review.</p>
-            <span className="go">Draft a starter policy →</span>
-          </button>
-        </div>
-      </>
+      <div className="choicegrid">
+        <button className="choice" onClick={() => start("have")}>
+          <div className="cic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M6 3h9l4 4v14H6z" /><path d="M14 3v5h5" /><path d="M9 13h6M9 17h6" /></svg></div>
+          <h3>I have a policy</h3>
+          <p>Upload your revenue recognition policy. We&apos;ll parse it into provisions and check each against US GAAP, flagging compliance conflicts and coverage gaps.</p>
+          <span className="go">Upload policy →</span>
+        </button>
+        <button className="choice" onClick={() => start("none")}>
+          <div className="cic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 5v14M5 12h14" /></svg></div>
+          <h3>I don&apos;t have one yet</h3>
+          <p>Answer a few questions and upload at least {MIN_CONTRACTS} example contracts. We&apos;ll draft a starter policy grounded in the standard and your own fact patterns — recommended as your policy of record, pending review.</p>
+          <span className="go">Draft a starter policy →</span>
+        </button>
+      </div>
     );
   }
 
   if (stage === "upload") {
     return (
-      <div className="card formcard" style={{ maxWidth: 560, marginTop: 22 }}>
+      <div className="card formcard" style={{ maxWidth: 620, marginTop: 22 }}>
         <h2 style={{ margin: 0 }}>{path === "have" ? "Upload your revenue policy" : "Set up a starter policy"}</h2>
-        <p className="sub" style={{ margin: 0 }}>{path === "have" ? "We'll parse it into provisions and check each against ASC 606 / 340-40." : "Upload a couple of example contracts to ground the draft."}</p>
+        <p className="sub" style={{ margin: 0 }}>{path === "have" ? "We'll parse it into provisions and check each against ASC 606 / 340-40." : "A few quick questions help tailor the policy — then upload example contracts to ground it."}</p>
         {err ? <div className="auth-err">{err}</div> : null}
+
+        {path === "none" && QUESTIONS.map((q) => (
+          <label className="field" key={q.key}>
+            <span>{q.label}</span>
+            <select className="select" value={answers[q.key] ?? ""} onChange={(e) => setAnswers((a) => ({ ...a, [q.key]: e.target.value }))}>
+              <option value="" disabled>Select…</option>
+              {q.options.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </label>
+        ))}
+
         <label className="dropzone" style={{ cursor: "pointer", display: "block" }}>
-          <div className="dt">{path === "have" ? "Drop a policy document" : "Drop example contracts"}</div>
-          <div className="ds">PDF only</div>
-          {fileName ? <div className="fname">{fileName}</div> : null}
-          <input type="file" accept="application/pdf" onChange={pickFile} style={{ display: "none" }} />
+          <div className="dt">{path === "have" ? "Drop a policy document" : `Drop at least ${MIN_CONTRACTS} example contracts`}</div>
+          <div className="ds">PDF only{path === "none" ? " · select multiple" : ""}</div>
+          {files.length > 0 ? <div className="fname">{files.length === 1 ? files[0] : `${files.length} files: ${files.join(", ")}`}</div> : null}
+          <input type="file" accept="application/pdf" multiple={path === "none"} onChange={pickFiles} style={{ display: "none" }} />
         </label>
+
         <div className="formactions">
           <button className="btn" onClick={() => setStage("onboard")}>Back</button>
           <button className="btn primary" onClick={analyze}>{path === "have" ? "Analyze policy" : "Draft policy"}</button>
@@ -121,7 +142,7 @@ export default function PolicyOnboarding() {
 
   if (stage === "analyzing") {
     return (
-      <div className="card" style={{ padding: 22, marginTop: 22, maxWidth: 560 }}>
+      <div className="card" style={{ padding: 22, marginTop: 22, maxWidth: 620 }}>
         <h2 style={{ marginTop: 0 }}>{path === "have" ? "Analyzing your policy" : "Drafting a policy"}</h2>
         <div className="analyzing">
           {steps.map((s, i) => (
@@ -140,7 +161,7 @@ export default function PolicyOnboarding() {
       <div style={{ marginTop: 22 }}>
         <div className="empty-note" style={{ textAlign: "left", marginBottom: 18 }}>
           Illustrative preview. Automated policy analysis ships with the engine&apos;s policy module —
-          for now this shows the kind of conflicts and gaps Concludo surfaces. Tracking them creates real gap flags.
+          for now this shows the kind of conflicts and gaps Concludo surfaces. Adopting creates a real policy and gap flags.
         </div>
         {err ? <div className="auth-err" style={{ marginBottom: 12 }}>{err}</div> : null}
         <h2>Compliance conflicts &amp; coverage gaps</h2>
@@ -167,9 +188,7 @@ export default function PolicyOnboarding() {
       {err ? <div className="auth-err" style={{ marginBottom: 12 }}>{err}</div> : null}
       <h2>Draft policy — provisions</h2>
       <div className="card" style={{ padding: 20 }}>
-        <ul className="steps">
-          {DRAFT.map((d, i) => <li key={i}>{d}</li>)}
-        </ul>
+        <ul className="steps">{DRAFT.map((d, i) => <li key={i}>{d}</li>)}</ul>
       </div>
       <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
         <button className="btn primary" disabled={busy} onClick={() => persist("system_generated")}>{busy ? "Saving…" : "Adopt as policy of record"}</button>

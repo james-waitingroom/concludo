@@ -35,9 +35,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     supabase.from("companies").select("name").eq("id", companyId).single(),
   ]);
 
+  const fullName = (user.user_metadata?.full_name as string) ?? "";
+  const firstName = fullName.trim().split(/\s+/)[0] || (user.email ?? "").split("@")[0];
+
   return (
     <div className="app">
-      <Sidebar userEmail={user.email ?? ""} isAdmin={admin} companyName={company?.name ?? ""} />
+      <Sidebar userEmail={user.email ?? ""} displayName={firstName} isAdmin={admin} companyName={company?.name ?? ""} />
       <main className="main">{children}</main>
     </div>
   );
