@@ -7,6 +7,7 @@
   "scripts": {
     "spike": "tsx src/runSpike.ts",
     "spike:one": "tsx src/runSpike.ts --only",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -18,7 +19,8 @@
   "devDependencies": {
     "@types/node": "^24.0.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.10"
   },
   "allowScripts": {
     "esbuild@0.28.1": true
