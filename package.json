@@ -1,0 +1,11 @@
+{
+  "name": "concludo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Concludo — ASC 606 / 340-40 accounting judgment engine + Supabase-backed Next.js app.",
+  "scripts": {
+    "test": "npm run test:engine && npm run test:spike",
+    "test:engine": "npm --prefix engine test",
+    "test:spike": "npm --prefix spike test"
+  }
+}
