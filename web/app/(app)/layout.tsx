@@ -30,11 +30,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const admin = await isPlatformAdmin(user.id);
+  const [admin, { data: company }] = await Promise.all([
+    isPlatformAdmin(user.id),
+    supabase.from("companies").select("name").eq("id", companyId).single(),
+  ]);
 
   return (
     <div className="app">
-      <Sidebar userEmail={user.email ?? ""} isAdmin={admin} />
+      <Sidebar userEmail={user.email ?? ""} isAdmin={admin} companyName={company?.name ?? ""} />
       <main className="main">{children}</main>
     </div>
   );

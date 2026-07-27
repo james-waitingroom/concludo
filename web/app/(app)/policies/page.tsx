@@ -1,4 +1,5 @@
 import { supabaseServer } from "@/lib/supabaseServer";
+import PolicyOnboarding from "./PolicyOnboarding";
 
 export const dynamic = "force-dynamic";
 
@@ -7,50 +8,86 @@ const SOURCE_LABEL: Record<string, string> = { uploaded: "Uploaded", system_gene
 
 export default async function PoliciesPage() {
   const db = supabaseServer();
-  const { data: policies, error } = await db
+  const { data: policies } = await db
     .from("policies")
     .select("id,standard,version,source,effective_date,created_at")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(1);
 
-  const { data: provisions } = await db.from("policy_provisions").select("policy_id");
-  const provCount = (id: string) => (provisions ?? []).filter((p) => p.policy_id === id).length;
+  const policy = policies?.[0];
 
   return (
     <div className="content">
       <div className="eyebrow">Revenue · Policies</div>
-      <h1>Policies</h1>
-      <div className="sub">Your accounting policy positions — the company&apos;s stated treatment for each judgment area.</div>
+      <h1>Revenue Recognition Policy</h1>
+      <div className="sub">
+        Your Policy is the standing set of positions Concludo applies to every contract — and the source of each technical memo.
+      </div>
 
-      {error ? (
-        <div className="empty-note" style={{ marginTop: 24 }}>Couldn&apos;t load policies: {error.message}</div>
-      ) : (policies?.length ?? 0) === 0 ? (
-        <div className="empty-note" style={{ marginTop: 24 }}>
-          No policies yet. Policies capture how your company applies ASC 606/340-40 — distinctness,
-          SSP method, recognition patterns, and commission treatment. Once defined, Concludo checks
-          each contract&apos;s judgments against them and flags gaps.
-        </div>
+      {!policy ? (
+        <PolicyOnboarding />
       ) : (
-        <div className="card" style={{ marginTop: 20 }}>
+        <PolicyDetail policyId={policy.id} standard={policy.standard} version={policy.version} source={policy.source} effective={policy.effective_date} />
+      )}
+    </div>
+  );
+}
+
+async function PolicyDetail({ policyId, standard, version, source, effective }: { policyId: string; standard: string; version: number; source: string; effective: string | null }) {
+  const db = supabaseServer();
+  const [{ data: provisions }, { data: gaps }] = await Promise.all([
+    db.from("policy_provisions").select("determination_type,company_position,standard_citation").eq("policy_id", policyId),
+    db.from("gap_flags").select("type,severity,description,standard_citation,status").eq("policy_id", policyId),
+  ]);
+
+  const sevClass = (s: string | null) => (s === "critical" ? "critical" : s === "warning" ? "warning" : "info");
+
+  return (
+    <>
+      <div className="card" style={{ marginTop: 20, padding: 0 }}>
+        <div className="attrs">
+          <div className="attr"><div className="k">Standard</div><div className="v">{standard?.replace("_", " ")}</div></div>
+          <div className="attr"><div className="k">Version</div><div className="v mono">v{version}</div></div>
+          <div className="attr"><div className="k">Source</div><div className="v">{source === "system_generated" ? <span className="provisional">✦ System-generated · provisional</span> : SOURCE_LABEL[source] ?? source}</div></div>
+          <div className="attr"><div className="k">Effective</div><div className="v">{date(effective)}</div></div>
+        </div>
+      </div>
+
+      <div className="sec">
+        <h2>Provisions</h2>
+        <div className="card">
           <div className="tscroll">
             <table>
-              <thead>
-                <tr><th>Standard</th><th>Version</th><th>Source</th><th className="r">Provisions</th><th>Effective</th></tr>
-              </thead>
+              <thead><tr><th>Determination</th><th>Company position</th><th>Citation</th></tr></thead>
               <tbody>
-                {(policies ?? []).map((p) => (
-                  <tr key={p.id}>
-                    <td className="name">{p.standard?.replace("_", " ")}</td>
-                    <td className="mono">v{p.version}</td>
-                    <td>{SOURCE_LABEL[p.source] ?? p.source}</td>
-                    <td className="r mono">{provCount(p.id)}</td>
-                    <td>{date(p.effective_date)}</td>
+                {(provisions ?? []).map((p, i) => (
+                  <tr key={i}>
+                    <td className="name" style={{ whiteSpace: "nowrap" }}>{p.determination_type}</td>
+                    <td>{p.company_position}</td>
+                    <td><span className="gapcite">{p.standard_citation}</span></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
+      </div>
+
+      {(gaps?.length ?? 0) > 0 && (
+        <div className="sec">
+          <h2>Tracked gaps · {gaps!.length}</h2>
+          {(gaps ?? []).map((g, i) => (
+            <div className={`gapcard ${sevClass(g.severity)}`} key={i}>
+              <div className="gaptop">
+                <span className={`gaptag ${sevClass(g.severity)}`}>{g.type === "compliance" ? "Compliance conflict" : "Coverage gap"}</span>
+                <span className="resultcount" style={{ marginLeft: "auto" }}>{g.status}</span>
+              </div>
+              <div className="gapbody">{g.description}</div>
+              <span className="gapcite">{g.standard_citation}</span>
+            </div>
+          ))}
+        </div>
       )}
-    </div>
+    </>
   );
 }

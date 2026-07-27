@@ -41,7 +41,8 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export default function Sidebar({ userEmail, isAdmin }: { userEmail: string; isAdmin: boolean }) {
+export default function Sidebar({ userEmail, isAdmin, companyName }: { userEmail: string; isAdmin: boolean; companyName: string }) {
+  const initial = (companyName || userEmail || "?").trim().charAt(0).toUpperCase();
   const pathname = usePathname();
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -100,8 +101,16 @@ export default function Sidebar({ userEmail, isAdmin }: { userEmail: string; isA
           </a>
         ) : null}
         <div className="acct">
-          <div className="acctmail">{userEmail}</div>
-          <form action={signOutAction}><button className="signout" type="submit">Sign out</button></form>
+          <Link href="/settings" className="avatar" title="Set company icon" aria-label="Set company icon">
+            {initial}
+            <span className="cam">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M4 8h3l2-2h6l2 2h3v11H4z" /><circle cx="12" cy="13" r="3" /></svg>
+            </span>
+          </Link>
+          <div className="acctbody">
+            <div className="acctmail" title={userEmail}>{userEmail}</div>
+            <form action={signOutAction}><button className="signout" type="submit">Sign out</button></form>
+          </div>
         </div>
       </div>
     </aside>

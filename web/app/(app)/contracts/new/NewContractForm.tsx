@@ -21,7 +21,7 @@ export default function NewContractForm() {
 
     if (!name || !customer) { setErr("Contract name and customer are required."); return; }
     if (!file) { setErr("Please attach the contract PDF."); return; }
-    if (!file.name.toLowerCase().endsWith(".pdf")) { setErr("Only PDF files are accepted."); return; }
+    if (!file.name.toLowerCase().endsWith(".pdf") || file.type !== "application/pdf") { setErr("Only PDF files are accepted."); return; }
 
     setBusy(true);
 
@@ -57,7 +57,7 @@ export default function NewContractForm() {
       </label>
       <label className="field">
         <span>Source PDF</span>
-        <input name="file" type="file" accept="application/pdf,.pdf" required />
+        <input name="file" type="file" accept="application/pdf" required />
         <small className="hint">PDF only. Uploaded directly to secure storage; extraction and judgments run separately.</small>
       </label>
       <div className="formactions">
