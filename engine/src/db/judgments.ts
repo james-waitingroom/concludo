@@ -5,6 +5,7 @@
  */
 import { getSupabase } from "./supabase.js";
 import type { ChainResult } from "../run.js";
+import type { Judgment } from "../model.js";
 
 export async function findContractByName(companyId: string, name: string): Promise<string | null> {
   const db = getSupabase();
@@ -22,7 +23,17 @@ export async function clearContractAnalysis(contractId: string): Promise<void> {
   if (dp.error) throw dp.error;
 }
 
-export async function persistAnalysis(contractId: string, chain: ChainResult): Promise<{ pos: number; judgments: number }> {
+/**
+ * Persist a contract's analysis. Performance obligations always come from the deterministic chain.
+ * By default the full versioned judgment ledger (chain.store) is written (the audit-trail example).
+ * If `judgmentsOverride` is provided, those judgments are written verbatim instead — used to seed a
+ * "pending review" queue (proposed judgments awaiting human approval in the UI).
+ */
+export async function persistAnalysis(
+  contractId: string,
+  chain: ChainResult,
+  judgmentsOverride?: Judgment[],
+): Promise<{ pos: number; judgments: number }> {
   const db = getSupabase();
   await clearContractAnalysis(contractId);
 
@@ -54,7 +65,7 @@ export async function persistAnalysis(contractId: string, chain: ChainResult): P
 
   // 2) Judgments — insert in store order so a superseded row exists before the row that supersedes it.
   const jIdMap = new Map<string, string>();
-  const all = chain.store.all();
+  const all = judgmentsOverride ?? chain.store.all();
   for (const j of all) {
     const res = await db
       .from("judgments")

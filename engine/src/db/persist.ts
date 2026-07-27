@@ -10,6 +10,7 @@ dotenv.config();
 
 import { runChain } from "../run.js";
 import { brightwell } from "../facts.js";
+import { proposeBrightwellJudgments } from "../judgments/mockJudgments.js";
 import { getOrCreateCompany } from "./contracts.js";
 import { findContractByName, persistAnalysis } from "./judgments.js";
 import { getSupabase } from "./supabase.js";
@@ -24,10 +25,14 @@ async function main(): Promise<void> {
   if (!contractId) throw new Error(`Contract "${CONTRACT_NAME}" not found — run 'npm run db:seed' first.`);
 
   const chain = await runChain(brightwell, { forceMock });
-  const { pos, judgments } = await persistAnalysis(contractId, chain);
+  // Persist the freshly PROPOSED judgments (pending human review), not the auto-approved ledger,
+  // so the review workflow in the UI has a real queue to act on. Approvals/overrides then build
+  // the immutable audit trail through the app.
+  const proposed = proposeBrightwellJudgments();
+  const { pos, judgments } = await persistAnalysis(contractId, chain, proposed);
 
   console.log(`\x1b[32m✓ Persisted analysis for Brightwell\x1b[0m (${chain.mode} judgments)`);
-  console.log(`  ${pos} performance obligations, ${judgments} judgment rows written.`);
+  console.log(`  ${pos} performance obligations, ${judgments} judgment rows written (status: proposed / pending review).`);
 
   // Read it back so you can see the stored ledger.
   const db = getSupabase();
