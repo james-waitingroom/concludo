@@ -31,7 +31,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui);
 a { color: inherit; text-decoration: none; }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
-.app { display: grid; grid-template-columns: 198px 1fr; min-height: 100vh; }
+.app { display: grid; grid-template-columns: 164px 1fr; min-height: 100vh; }
 .side { background: var(--surface); border-right: 1px solid var(--line); padding: 16px 10px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; letter-spacing: -.01em; padding: 6px 8px 18px; }
 .brand .glyph { width: 24px; height: 24px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; color: #06232E; font-family: var(--font-mono); font-weight: 700; }

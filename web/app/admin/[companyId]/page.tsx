@@ -70,6 +70,7 @@ export default async function TenantDetail({
         <div className="sub" style={{ marginTop: -8, marginBottom: 12 }}>Creates the account and grants access to this tenant. Share the temporary password securely.</div>
         <form action={provisionUserAction} className="card formcard" style={{ maxWidth: 520 }}>
           <input type="hidden" name="companyId" value={params.companyId} />
+          <label className="field"><span>Full name</span><input name="full_name" required placeholder="e.g. Jordan Rivera" /></label>
           <label className="field"><span>Email</span><input name="email" type="email" required placeholder="person@company.com" /></label>
           <label className="field"><span>Temporary password</span><input name="password" type="text" required minLength={8} placeholder="min 8 characters" /></label>
           <label className="field"><span>Role</span>

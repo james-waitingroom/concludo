@@ -1,6 +1,6 @@
 import { supabaseServer } from "@/lib/supabaseServer";
 import { getPrimaryCompany } from "@/lib/membership";
-import { updateProfileAction, changePasswordAction } from "./actions";
+import { changePasswordAction } from "./actions";
 import ThemeToggle from "./ThemeToggle";
 
 export const dynamic = "force-dynamic";
@@ -43,11 +43,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: { e
       <div className="setgrid">
         <div className="panel">
           <h2>Profile</h2>
-          <form action={updateProfileAction}>
-            <label className="field"><span>Full name</span><input name="full_name" defaultValue={fullName} placeholder="e.g. Jordan Rivera" /><small className="hint">Your first name is shown in the sidebar.</small></label>
-            <label className="field"><span>Email</span><input value={user?.email ?? ""} disabled /></label>
-            <div className="formactions"><button className="btn primary" type="submit">Save profile</button></div>
-          </form>
+          <div className="field"><span>Full name</span><input value={fullName || "—"} disabled /></div>
+          <div className="field"><span>Email</span><input value={user?.email ?? ""} disabled /></div>
+          <small className="hint">Your name and email are set by your Concludo administrator.</small>
         </div>
 
         <div className="panel">

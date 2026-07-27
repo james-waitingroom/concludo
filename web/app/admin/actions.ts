@@ -32,13 +32,14 @@ export async function provisionUserAction(formData: FormData) {
   await requireAdmin();
   const companyId = String(formData.get("companyId") || "");
   const email = String(formData.get("email") || "").trim();
+  const fullName = String(formData.get("full_name") || "").trim();
   const password = String(formData.get("password") || "");
   const role = String(formData.get("role") || "member");
   const back = (q: string) => redirect(`/admin/${companyId}?${q}`);
-  if (!email || !password) back("error=" + encodeURIComponent("Email and temporary password are required."));
+  if (!fullName || !email || !password) back("error=" + encodeURIComponent("Full name, email, and temporary password are required."));
 
   const db = supabaseAdmin();
-  const created = await db.auth.admin.createUser({ email, password, email_confirm: true });
+  const created = await db.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: fullName } });
   if (created.error) back("error=" + encodeURIComponent(created.error.message));
   const userId = created.data.user!.id;
 
